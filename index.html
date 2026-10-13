@@ -1,4 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Glare Music 🦋</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background: #160f25;
+  color: white;
+  padding: 25px 15px;
+}
+h1 { color: #f5c9ff; }
+button {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 14px auto;
+  padding: 15px;
+  border: 0;
+  border-radius: 12px;
+  font-size: 17px;
+  cursor: pointer;
+}
+#gravar { background: #d7a7ff; }
+#parar { background: #ffb7d5; }
+#baixar { background: #c7f3df; }
+audio { width: 100%; max-width: 350px; margin-top: 15px; }
+#status { color: #f5c9ff; }
+</style>
+</head>
+<body>
 
+<h1>🦋 Glare Music</h1>
+<p>Onde a música ganha asas.</p>
+<h2>🎤 Minha primeira música</h2>
+<p>Cante sua melodia e ouça sua gravação aqui!</p>
+
+<button id="gravar">🎙️ Começar a gravar</button>
+<button id="parar" disabled>⏹️ Parar gravação</button>
+
+<p id="status">Pronta para cantar? 🎶</p>
+<div id="resultado"></div>
+
+<script>
+let gravador;
+let partes = [];
+
+const gravar = document.getElementById("gravar");
+const parar = document.getElementById("parar");
+const statusTexto = document.getElementById("status");
+const resultado = document.getElementById("resultado");
+
+gravar.onclick = async () => {
+  try {
+    const fluxo = await navigator.mediaDevices.getUserMedia({
+      audio: true
+    });
+
+    partes = [];
+    gravador = new MediaRecorder(fluxo);
+
+    gravador.ondataavailable = evento => {
+      if (evento.data.size > 0) {
+        partes.push(evento.data);
+      }
+    };
+
+    gravador.onstop = () => {
+      const audio = new Blob(partes, {
+        type: gravador.mimeType || "audio/webm"
+      });
+
+      const endereco = URL.createObjectURL(audio);
+      resultado.innerHTML = "";
+
+      const player = document.createElement("audio");
+      player.controls = true;
+      player.src = endereco;
+      resultado.appendChild(player);
+
+      const baixar = document.createElement("a");
+      baixar.href = endereco;
+      baixar.download = "minha-musica-glare.webm";
+      baixar.textContent = "⬇️ Baixar minha gravação";
+      baixar.style.display = "block";
+      baixar.style.color = "#c7f3df";
+      baixar.style.margin = "20px";
+      resultado.appendChild(baixar);
+
+      statusTexto.textContent =
+        "Gravação pronta! Toque no áudio para ouvir. ❤️";
+
+      fluxo.getTracks().forEach(track => track.stop());
+    };
+
+    gravador.start();
+    gravar.disabled = true;
+    parar.disabled = false;
+    statusTexto.textContent = "Gravando sua voz... 🎶";
+
+  } catch (erro) {
+    statusTexto.textContent =
+      "Não foi possível acessar o microfone. Verifique a permissão do navegador.";
+  }
+};
+
+parar.onclick = () => {
+  if (gravador && gravador.state === "recording") {
+    gravador.stop();
+    gravar.disabled = false;
+    parar.disabled = true;
+  }
+};
+</script>
+
+</body>
+</html>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
