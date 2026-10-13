@@ -1,1 +1,100 @@
 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glare Music</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, #100c2b, #30205b, #090817);
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    main {
+      padding: 28px;
+      max-width: 340px;
+    }
+    .butterfly {
+      font-size: 76px;
+      filter: drop-shadow(0 0 15px #d5aaff);
+    }
+    h1 {
+      font-size: 38px;
+      letter-spacing: 2px;
+      color: #ead8ff;
+    }
+    p {
+      line-height: 1.6;
+    }
+    button {
+      border: 0;
+      border-radius: 30px;
+      padding: 15px 24px;
+      margin: 8px 4px;
+      background: #d8b4fe;
+      color: #24123f;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    #status {
+      color: #e6d5ff;
+      min-height: 24px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="butterfly">🦋</div>
+    <h1>Glare Music</h1>
+    <p>Onde a música ganha asas.</p>
+    <p>Guarde a inspiração. Sua música começa com a sua voz.</p>
+    <button id="record">🎙️ Começar gravação</button>
+    <p id="status">Sua próxima canção começa aqui.</p>
+  </main>
+  <script>
+    let gravador;
+    let partes = [];
+    const botao = document.getElementById("record");
+    const status = document.getElementById("status");
+
+    botao.onclick = async () => {
+      if (gravador && gravador.state === "recording") {
+        gravador.stop();
+        botao.textContent = "🎙️ Começar gravação";
+        status.textContent = "Preparando sua gravação...";
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        partes = [];
+        gravador = new MediaRecorder(stream);
+        gravador.ondataavailable = e => partes.push(e.data);
+        gravador.onstop = () => {
+          const audio = new Blob(partes, {type: gravador.mimeType});
+          const url = URL.createObjectURL(audio);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "minha-musica.webm";
+          link.click();
+          stream.getTracks().forEach(track => track.stop());
+          status.textContent = "Gravação baixada para o seu celular!";
+        };
+        gravador.start();
+        botao.textContent = "⏹️ Parar gravação";
+        status.textContent = "Gravando! Cante sua melodia.";
+      } catch (erro) {
+        status.textContent = "Permita o acesso ao microfone para gravar.";
+      }
+    };
+  </script>
+</body>
+</html>
+
